@@ -1,2 +1,4 @@
 time-delay-enabled: true
 time-delay-ticks: 1
+
+broadcast-messages: true

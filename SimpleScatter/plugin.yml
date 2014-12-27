@@ -4,4 +4,3 @@ main: net.mcshockwave.scatter.SimpleScatter
 author: Blaxcraft
 commands:
    uhcscatter:
-      usage: /scatter (radius) [world] [teams]

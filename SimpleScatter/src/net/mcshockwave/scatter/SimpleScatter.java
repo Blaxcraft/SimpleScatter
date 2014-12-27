@@ -17,8 +17,9 @@ public class SimpleScatter extends JavaPlugin {
 
 	public static Scoreboard	score		= null;
 
-	public boolean				useDelay	= true;
-	public long					delayTicks	= 1;
+	public static boolean		useDelay	= true;
+	public static long			delayTicks	= 1;
+	public static boolean		broadcast	= true;
 
 	public void onEnable() {
 		score = Bukkit.getScoreboardManager().getMainScoreboard();
@@ -27,6 +28,7 @@ public class SimpleScatter extends JavaPlugin {
 
 		useDelay = getConfig().getBoolean("time-delay-enabled");
 		delayTicks = getConfig().getLong("time-delay-ticks");
+		broadcast = getConfig().getBoolean("broadcast-messages");
 	}
 
 	public static void spreadPlayers(World world, int spreadDistance, final boolean delay, final boolean instant,
@@ -37,10 +39,12 @@ public class SimpleScatter extends JavaPlugin {
 	public static void spreadPlayers(World world, int spreadDistance, final boolean delay, final boolean instant,
 			final long time, final boolean resuming, final boolean teams) {
 		SchedulerUtils util = SchedulerUtils.getNew();
-		Bukkit.broadcastMessage("§cGetting scatter locations...");
+		if (broadcast)
+			Bukkit.broadcastMessage("§cGetting scatter locations...");
 		final Location[] locs = ScatterManager.getScatterLocations(world, spreadDistance, getScatterAmount(teams));
 		util.add(delay ? 10 : 0);
-		util.add("§aLoading chunks... (this may take a while)");
+		if (broadcast)
+			util.add("§aLoading chunks... (this may take a while)");
 		for (final Location l : locs) {
 			util.add(new Runnable() {
 				public void run() {
@@ -50,7 +54,8 @@ public class SimpleScatter extends JavaPlugin {
 			util.add(delay ? 5 : 0);
 		}
 		util.add(delay ? 9 : 0);
-		util.add("§eLoading locations...");
+		if (broadcast)
+			util.add("§eLoading locations...");
 		if (score.getTeams().size() > 0) {
 			util.add(new Runnable() {
 				public void run() {
@@ -105,11 +110,12 @@ public class SimpleScatter extends JavaPlugin {
 							if (Bukkit.getPlayer(ent.getKey()) != null) {
 								Player p = Bukkit.getPlayer(ent.getKey());
 								p.teleport(ent.getValue());
-								Bukkit.broadcastMessage("§aScattering: §6"
-										+ p.getName()
-										+ " §8[§7"
-										+ (score.getTeam(p.getName()) != null ? score.getTeam(p.getName()).getName()
-												: "Solo") + "§8]");
+								if (broadcast)
+									Bukkit.broadcastMessage("§aScattering: §6"
+											+ p.getName()
+											+ " §8[§7"
+											+ (score.getTeam(p.getName()) != null ? score.getTeam(p.getName())
+													.getName() : "Solo") + "§8]");
 								// for (Player pl : Bukkit.getOnlinePlayers()) {
 								// pl.playSound(pl.getLocation(),
 								// Sound.NOTE_PLING, 10, 2);
@@ -120,7 +126,8 @@ public class SimpleScatter extends JavaPlugin {
 					sc.add(instant ? 0 : 2);
 				}
 
-				sc.add("§e§lDone scattering!");
+				if (broadcast)
+					sc.add("§e§lDone scattering!");
 
 				sc.execute();
 			}
@@ -184,7 +191,7 @@ public class SimpleScatter extends JavaPlugin {
 				teams = Boolean.valueOf(args[2]);
 			}
 
-			spreadPlayers(w, rad, useDelay, false, delayTicks, false, teams);
+			spreadPlayers(w, rad, useDelay, delayTicks == 0, delayTicks, false, teams);
 		}
 		return false;
 	}
